@@ -3,12 +3,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // description message
   const msgContainer = document.querySelector('.description');
+  const msg = document.querySelector('.msg');
 
   // select with chips
   const chips = document.querySelector('select[name="chip"]');
 
   // select with firmware 
   const firmware = document.querySelector('select[name="firmware"]');
+
+  let unsupported = false;
 
 
 
@@ -29,7 +32,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const manifestJSON = await fetch(`../manifest/${manifest}.manifest.json`)
     const manifestResult = await manifestJSON.json();
-    const msg = document.querySelector('.msg');
 
     chips.innerHTML = `<option class="placeholder" value="" disabled selected>Select chip</option>`;
     chips.style.display="block"
@@ -51,40 +53,44 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // display information above selects
     const descr = manifestResult.description;
-    const text = manifestResult.text;
-    const btn = msg.querySelector('esp-web-install-button');
-    const btnAttrs = btn.getAttributeNames();
-
-    let unsupported = false;
 
     msg.classList.remove('invisible');
 
 
-    btnAttrs.map(attr => {
-     if(attr === 'install-unsupported') {
-      unsupported = true;
-     }
-    })
-
-
     if(!unsupported) {
-      if(text) {
-        msgContainer.innerText = descr;
-  
-        const span = document.createElement('span');
-        span.innerText = text;
-        msgContainer.append(span)
-      } else {
-        msgContainer.innerText = descr;
+
+      msgContainer.innerText = descr;
+
+      // if need to add some specific styling or additional tag to specific manifest
+      if(manifest === 'airrohr-firmware_en') {
+        const a = document.createElement('a');
+        a.innerText = 'Read article on wiki';
+        a.href = "#"
+        msgContainer.append(a)
       }
-    } else {
-      chips.setAttribute('disabled', true)
-      firmware.setAttribute('disabled', true)
-      msg.classList.add('unsupported')
-      btn.classList.remove('invisible');
-      document.querySelector('.btn-unsupported').style.display = 'block';
+
+      
     }
  
+  }
+
+  const checkSupport = () => {
+    const btn = msg.querySelector('esp-web-install-button');
+    const btnAttrs = btn.getAttributeNames();
+
+
+    btnAttrs.map(attr => {
+      if(attr === 'install-unsupported') {
+        unsupported = true;
+
+        chips.setAttribute('disabled', true)
+        firmware.setAttribute('disabled', true)
+        msg.classList.add('unsupported')
+        msg.classList.remove('invisible')
+        btn.classList.remove('invisible');
+        document.querySelector('.btn-unsupported').style.display = 'block';
+      }
+    })
   }
 
 
@@ -92,5 +98,7 @@ document.addEventListener("DOMContentLoaded", () => {
   new SimpleBar(document.getElementById('customBar'), {
     autoHide: false,
   });
+
+  checkSupport();
 
 })
